@@ -1,0 +1,143 @@
+{
+  "projects": [
+    {
+      "id": "projeto-001",
+      "name": "Apartamento Modelo",
+      "title": "Tour Virtual - Apartamento Modelo",
+      "description": "Conheça nosso apartamento modelo com acabamentos de primeira linha",
+      "image": "https://pannellum.org/images/alma.jpg",
+      "logo": "logo-ambi.svg",
+      "createdAt": "2024-01-15T10:30:00Z",
+      "status": "active",
+      "northOffset": 0,
+      "pitch": 0,
+      "yaw": 0,
+      "hfov": 100,
+      "hotspots": [
+        {
+          "id": "hotspot-1",
+          "type": "info",
+          "pitch": -10,
+          "yaw": 45,
+          "title": "Sala de Estar",
+          "text": "Ampla sala de estar com vista panorâmica"
+        },
+        {
+          "id": "hotspot-2",
+          "type": "info",
+          "pitch": 0,
+          "yaw": -90,
+          "title": "Cozinha Gourmet",
+          "text": "Cozinha completa com ilha central"
+        },
+        {
+          "id": "hotspot-3",
+          "type": "info",
+          "pitch": 5,
+          "yaw": 180,
+          "title": "Varanda",
+          "text": "Varanda com churrasqueira e vista para o mar"
+        }
+      ],
+      "scenes": [
+        {
+          "id": "sala",
+          "name": "Sala de Estar",
+          "image": "https://pannellum.org/images/alma.jpg"
+        }
+      ]
+    },
+    {
+      "id": "projeto-002",
+      "name": "Casa de Campo",
+      "title": "Tour Virtual - Casa de Campo",
+      "description": "Uma casa aconchegante no interior com muito verde",
+      "image": "https://pannellum.org/images/cerro-toco-0.jpg",
+      "logo": "logo-ambi.svg",
+      "createdAt": "2024-01-20T14:15:00Z",
+      "status": "active",
+      "northOffset": 0,
+      "pitch": 0,
+      "yaw": 0,
+      "hfov": 110,
+      "hotspots": [
+        {
+          "id": "hotspot-1",
+          "type": "info",
+          "pitch": -5,
+          "yaw": 0,
+          "title": "Vista da Montanha",
+          "text": "Vista espetacular das montanhas ao fundo"
+        },
+        {
+          "id": "hotspot-2",
+          "type": "info",
+          "pitch": -15,
+          "yaw": 90,
+          "title": "Jardim",
+          "text": "Jardim com plantas nativas da região"
+        }
+      ],
+      "scenes": [
+        {
+          "id": "exterior",
+          "name": "Área Externa",
+          "image": "https://pannellum.org/images/cerro-toco-0.jpg"
+        }
+      ]
+    },
+    {
+      "id": "projeto-003",
+      "name": "Escritório Corporativo",
+      "title": "Tour Virtual - Escritório Corporativo",
+      "description": "Moderno espaço corporativo com design contemporâneo",
+      "image": "https://pannellum.org/images/bma-0.jpg",
+      "logo": "logo-ambi.svg",
+      "createdAt": "2024-01-25T09:45:00Z",
+      "status": "active",
+      "northOffset": 0,
+      "pitch": 0,
+      "yaw": 0,
+      "hfov": 90,
+      "hotspots": [
+        {
+          "id": "hotspot-1",
+          "type": "info",
+          "pitch": 0,
+          "yaw": -45,
+          "title": "Recepção",
+          "text": "Área de recepção moderna e acolhedora"
+        },
+        {
+          "id": "hotspot-2",
+          "type": "info",
+          "pitch": -10,
+          "yaw": 45,
+          "title": "Sala de Reuniões",
+          "text": "Sala equipada com tecnologia de ponta"
+        },
+        {
+          "id": "hotspot-3",
+          "type": "info",
+          "pitch": 5,
+          "yaw": 135,
+          "title": "Área de Trabalho",
+          "text": "Espaço colaborativo com estações modernas"
+        }
+      ],
+      "scenes": [
+        {
+          "id": "recepcao",
+          "name": "Recepção",
+          "image": "https://pannellum.org/images/bma-0.jpg"
+        }
+      ]
+    }
+  ],
+  "settings": {
+    "defaultLogo": "logo-ambi.svg",
+    "allowEmbedding": true,
+    "autoRotate": true,
+    "showControls": true
+  }
+}

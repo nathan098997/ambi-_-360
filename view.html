@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="AMBI360 - Tour Virtual 360°">
+    <meta name="theme-color" content="#3eb3df">
+    <title>Tour Virtual 360° - AMBI360</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="hotspots.css">
+    <link rel="stylesheet" href="https://cdn.pannellum.org/2.5/pannellum.css">
+</head>
+<body>
+    <!-- Viewer Container -->
+    <section class="viewer-container" id="viewerContainer">
+        <div class="viewer-main">
+            <header class="viewer-header">
+                <div class="viewer-title-container">
+                    <img id="projectLogo" class="project-logo" src="" alt="Logo do Projeto" style="display: none;">
+                    <h1 class="viewer-title" id="projectTitle">Tour Virtual 360°</h1>
+                </div>
+                <div class="viewer-controls">
+                    <button class="control-btn" id="shareBtn" onclick="shareCurrentView()">🔗 Compartilhar</button>
+                    <button class="control-btn" onclick="toggleFullscreen()">⛶ Tela Cheia</button>
+                    <button class="control-btn" onclick="showHelpModal()">❓ Ajuda</button>
+                </div>
+            </header>
+            <div id="panorama"></div>
+        </div>
+    </section>
+
+    <!-- Help Modal -->
+    <div id="helpModal" class="hidden">
+        <div class="modal-backdrop" onclick="closeHelpModal()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Ajuda</h2>
+                <button class="modal-close" onclick="closeHelpModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <ul>
+                    <li>Mouse: arraste para rotacionar</li>
+                    <li>Scroll: zoom in/out</li>
+                    <li>Clique nos pontos para navegar</li>
+                    <li>ESC: sair do modo tela cheia</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-primary" onclick="closeHelpModal()">Entendi</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast para feedback -->
+    <div id="errorMessage" class="error hidden"></div>
+
+    <script src="https://cdn.pannellum.org/2.5/pannellum.js"></script>
+    <script>
+        // Variáveis globais
+        let viewer = null;
+        let projects = {};
+        let currentProjectName = null;
+        let currentScene = 'main';
+        let currentHotspotId = null;
+        let projectHotspots = [];
+        let currentViewState = { project: null, scene: null, point: null, pitch: 0, yaw: 0, fov: 75 };
+
+        // Carregar projetos do localStorage
+        function loadProjects() {
+            try {
+                const saved = localStorage.getItem('ambi360_projects');
+                return saved ? JSON.parse(saved) : {};
+            } catch (e) {
+                return {};
+            }
+        }
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', function() {
+            projects = loadProjects();
+            initShareButton();
+            loadPublicProject();
+        });
+        
+        // Inicializar botão de compartilhar
+        function initShareButton() {
+            const shareBtn = document.getElementById('shareBtn');
+            if (shareBtn && !isValidProtocol()) {
+                shareBtn.disabled = true;
+                shareBtn.textContent = '🚫 Indisponível';
+                shareBtn.title = 'Compartilhamento requer servidor HTTP/HTTPS';
+            }
+        }
+
+        // Verificar se está rodando em servidor HTTP/HTTPS
+        function isValidProtocol() {
+            return window.location.protocol === 'http:' || window.location.protocol === 'https:';
+        }
+
+        // Carregar projeto público com suporte a compartilhamento
+        function loadPublicProject() {
+            if (!isValidProtocol()) {
+                showError('Este sistema requer servidor HTTP/HTTPS. Não funciona com file://');
+                return;
+            }
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            const projectName = urlParams.get('project');
+            const scene = urlParams.get('scene');
+            const point = urlParams.get('point');
+            const pitch = urlParams.get('pitch');
+            const yaw = urlParams.get('yaw');
+            const fov = urlParams.get('fov');
+            
+            if (!projectName) {
+                showError('Projeto não especificado no link.');
+                return;
+            }
+            
+            const project = projects[projectName];
+            
+            if (!project) {
+                showError('Projeto não encontrado. Verifique se o link está correto.');
+                return;
+            }
+            
+            // Configurar projeto
+            currentProjectName = projectName;
+            projectHotspots = project.hotspots || [];
+            
+            // Mostrar informações do projeto
+            document.getElementById('projectTitle').textContent = project.title;
+            
+            const projectLogo = document.getElementById('projectLogo');
+            if (project.logo) {
+                projectLogo.src = project.logo;
+                projectLogo.style.display = 'block';
+            }
+            
+            // Inicializar viewer
+            initializeViewer(project);
+            
+            // Aplicar estado compartilhado após carregamento
+            setTimeout(() => {
+                if (viewer) {
+                    if (pitch !== null && yaw !== null) {
+                        viewer.lookAt(parseFloat(pitch), parseFloat(yaw), fov ? parseFloat(fov) : 75, 1000);
+                    }
+                    
+                    if (point) {
+                        navigateToHotspot(point);
+                    } else if (scene && scene !== 'main') {
+                        loadSceneById(scene);
+                    }
+                }
+            }, 1500);
+        }
+
+        // Inicializar visualizador
+        function initializeViewer(project) {
+            if (viewer) {
+                viewer.destroy();
+                viewer = null;
+            }
+
+            try {
+                viewer = pannellum.viewer('panorama', {
+                    type: 'equirectangular',
+                    panorama: project.image,
+                    autoLoad: true,
+                    autoRotate: -2,
+                    compass: true,
+                    showZoomCtrl: true,
+                    showFullscreenCtrl: true,
+                    hotSpots: (project.hotspots || []).map(h => ({
+                        id: h.id,
+                        pitch: h.pitch,
+                        yaw: h.yaw,
+                        type: 'info',
+                        text: h.text,
+                        clickHandlerFunc: () => navigateToHotspot(h.id)
+                    }))
+                });
+                
+                // Atualizar estado quando a visualização mudar
+                viewer.on('load', () => {
+                    updateViewState();
+                });
+                
+                viewer.on('mouseup', () => {
+                    setTimeout(updateViewState, 100);
+                });
+                
+            } catch (e) {
+                showError('Não foi possível carregar o panorama.');
+            }
+        }
+
+        // Navegar para um hotspot específico
+        function navigateToHotspot(hotspotId) {
+            currentHotspotId = hotspotId;
+            const hotspot = projectHotspots.find(h => h.id === hotspotId);
+            
+            if (hotspot && viewer) {
+                viewer.lookAt(hotspot.pitch, hotspot.yaw, 75, 1000);
+                updateViewState();
+                
+                // Se o hotspot tem imagem de destino, navegar para ela
+                if (hotspot.targetImage) {
+                    setTimeout(() => {
+                        loadHotspotScene(hotspot);
+                    }, 1000);
+                }
+            }
+        }
+
+        // Carregar cena de um hotspot
+        function loadHotspotScene(hotspot) {
+            if (!hotspot.targetImage) return;
+            
+            currentScene = hotspot.id;
+            currentHotspotId = null;
+            
+            // Encontrar hotspots filhos desta cena
+            const childHotspots = projectHotspots.filter(h => h.parentId === hotspot.id);
+            
+            viewer.destroy();
+            viewer = pannellum.viewer('panorama', {
+                type: 'equirectangular',
+                panorama: hotspot.targetImage,
+                autoLoad: true,
+                autoRotate: -2,
+                compass: true,
+                showZoomCtrl: true,
+                showFullscreenCtrl: true,
+                hotSpots: childHotspots.map(h => ({
+                    id: h.id,
+                    pitch: h.pitch,
+                    yaw: h.yaw,
+                    type: 'info',
+                    text: h.text,
+                    clickHandlerFunc: () => navigateToHotspot(h.id)
+                }))
+            });
+            
+            viewer.on('load', () => {
+                updateViewState();
+            });
+            
+            viewer.on('mouseup', () => {
+                setTimeout(updateViewState, 100);
+            });
+        }
+
+        // Carregar cena por ID
+        function loadSceneById(sceneId) {
+            const hotspot = projectHotspots.find(h => h.id === sceneId);
+            if (hotspot) {
+                loadHotspotScene(hotspot);
+            }
+        }
+
+        // Atualizar estado atual da visualização
+        function updateViewState() {
+            if (!viewer || !currentProjectName || !isValidProtocol()) return;
+            
+            try {
+                currentViewState = {
+                    project: currentProjectName,
+                    scene: currentScene,
+                    point: currentHotspotId,
+                    pitch: viewer.getPitch(),
+                    yaw: viewer.getYaw(),
+                    fov: viewer.getHfov()
+                };
+                
+                // Atualizar URL sem recarregar a página
+                updateUrl();
+            } catch (e) {
+                // Ignorar erros de estado
+            }
+        }
+
+        // Atualizar URL com estado atual
+        function updateUrl() {
+            if (!currentViewState.project || !isValidProtocol()) return;
+            
+            const params = new URLSearchParams();
+            params.set('project', currentViewState.project);
+            
+            if (currentViewState.scene && currentViewState.scene !== 'main') {
+                params.set('scene', currentViewState.scene);
+            }
+            
+            if (currentViewState.point) {
+                params.set('point', currentViewState.point);
+            }
+            
+            if (currentViewState.pitch !== undefined) {
+                params.set('pitch', currentViewState.pitch.toFixed(2));
+            }
+            
+            if (currentViewState.yaw !== undefined) {
+                params.set('yaw', currentViewState.yaw.toFixed(2));
+            }
+            
+            if (currentViewState.fov !== undefined && currentViewState.fov !== 75) {
+                params.set('fov', currentViewState.fov.toFixed(2));
+            }
+            
+            const newUrl = `${window.location.origin}${window.location.pathname}?${params.toString()}`;
+            history.replaceState(null, '', newUrl);
+        }
+
+        // Função principal de compartilhamento
+        function shareCurrentView() {
+            if (!isValidProtocol()) {
+                showToast('Compartilhamento requer servidor HTTP/HTTPS', 'warning');
+                return;
+            }
+            
+            const currentUrl = `${window.location.origin}${window.location.pathname}${window.location.search}`;
+            copyToClipboard(currentUrl);
+            showShareFeedback();
+        }
+
+        // Copiar para área de transferência
+        function copyToClipboard(text) {
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text).catch(() => {
+                    fallbackCopyToClipboard(text);
+                });
+            } else {
+                fallbackCopyToClipboard(text);
+            }
+        }
+
+        // Fallback para copiar texto
+        function fallbackCopyToClipboard(text) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.opacity = '0';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                document.execCommand('copy');
+            } catch (err) {
+                console.error('Erro ao copiar:', err);
+            }
+            
+            document.body.removeChild(textArea);
+        }
+
+        // Mostrar feedback visual de compartilhamento
+        function showShareFeedback() {
+            const shareBtn = document.getElementById('shareBtn');
+            if (!shareBtn) return;
+            
+            const originalText = shareBtn.innerHTML;
+            shareBtn.innerHTML = '✓ Copiado!';
+            shareBtn.style.backgroundColor = '#10b981';
+            
+            setTimeout(() => {
+                shareBtn.innerHTML = originalText;
+                shareBtn.style.backgroundColor = '';
+            }, 2000);
+            
+            showToast('Link copiado para área de transferência!', 'success');
+        }
+
+        // Funções auxiliares
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        function showHelpModal() {
+            document.getElementById('helpModal').classList.remove('hidden');
+        }
+
+        function closeHelpModal() {
+            document.getElementById('helpModal').classList.add('hidden');
+        }
+
+        function showError(message) {
+            document.body.innerHTML = `
+                <div style="text-align: center; padding: 50px; color: white; background: #1f2937; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                    <h2 style="color: #ef4444; margin-bottom: 20px;">❌ Erro</h2>
+                    <p style="font-size: 18px; margin-bottom: 30px;">${message}</p>
+                    <button onclick="window.history.back()" style="padding: 12px 24px; background: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px;">
+                        ← Voltar
+                    </button>
+                </div>
+            `;
+        }
+
+        function showToast(message, type = 'success') {
+            const errorDiv = document.getElementById('errorMessage');
+            if (!errorDiv) return;
+            
+            errorDiv.textContent = message;
+            errorDiv.className = `error ${type}`;
+            errorDiv.classList.remove('hidden');
+            
+            setTimeout(() => {
+                errorDiv.classList.add('hidden');
+                errorDiv.className = 'error';
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

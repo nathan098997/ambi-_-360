@@ -1,0 +1,114 @@
+# =============================================
+# AMBI360 - Git Ignore
+# =============================================
+
+# Arquivos de Ambiente e Configuração
+.env
+.env.local
+.env.production
+.env.staging
+config/database.json
+config/secrets.json
+
+# Dependências Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Arquivos de Sistema
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# IDEs e Editores
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.settings/
+.classpath
+
+# Arquivos de Build e Dist
+dist/
+build/
+out/
+.next/
+.nuxt/
+.cache/
+.parcel-cache/
+
+# Uploads e Arquivos Temporários
+uploads/
+temp/
+tmp/
+*.tmp
+*.temp
+
+# Backup e Dados Sensíveis
+backup/
+*.sql.backup
+*.db
+*.sqlite
+*.sqlite3
+
+# Certificados e Chaves
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+
+# Cache de Aplicações
+.cache/
+.npm/
+.eslintcache
+.stylelintcache
+
+# Arquivos de Teste
+coverage/
+.nyc_output/
+test-results/
+junit.xml
+
+# Arquivos de Deploy
+.vercel/
+.netlify/
+.firebase/
+
+# Arquivos Específicos do Projeto
+database-backup/
+user-data/
+session-data/
+*.local.js
+*.local.json
+
+# Arquivos de Imagem Grandes (opcional)
+# *.jpg
+# *.jpeg
+# *.png
+# *.gif
+# *.bmp
+
+# Arquivos de Vídeo (opcional)
+# *.mp4
+# *.avi
+# *.mov
+# *.wmv

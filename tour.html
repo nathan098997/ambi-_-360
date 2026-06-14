@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AMBI360 - Tour Virtual</title>
+    <link rel="stylesheet" href="https://cdn.pannellum.org/2.5/pannellum.css">
+    <link rel="stylesheet" href="tour-style.css">
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loadingScreen" class="loading-screen">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <p>Carregando tour virtual...</p>
+        </div>
+    </div>
+
+    <!-- Tour Container -->
+    <div id="tourContainer" class="tour-container hidden">
+        <!-- Header -->
+        <header class="tour-header">
+            <div class="header-left">
+                <img id="projectLogo" src="logo-ambi.svg" alt="Logo" class="project-logo">
+                <h1 id="projectTitle">Tour Virtual</h1>
+            </div>
+            <div class="header-right">
+                <button id="shareBtn" class="btn-share" title="Compartilhar">
+                    <span class="share-icon">🔗</span>
+                    <span class="share-text">Compartilhar</span>
+                </button>
+                <button id="fullscreenBtn" class="btn-fullscreen" title="Tela Cheia">
+                    <span class="fullscreen-icon">⛶</span>
+                </button>
+                <button id="helpBtn" class="btn-help" title="Ajuda">
+                    <span class="help-icon">❓</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Panorama Viewer -->
+        <div id="panorama" class="panorama-viewer"></div>
+
+        <!-- Navigation Controls -->
+        <div id="navigationControls" class="navigation-controls hidden">
+            <div class="nav-scenes">
+                <h3>Cenas Disponíveis:</h3>
+                <div id="scenesList" class="scenes-list"></div>
+            </div>
+        </div>
+
+        <!-- Share Success Message -->
+        <div id="shareSuccess" class="share-success hidden">
+            <span class="success-icon">✓</span>
+            <span>Link copiado com sucesso!</span>
+        </div>
+    </div>
+
+    <!-- Error Screen -->
+    <div id="errorScreen" class="error-screen hidden">
+        <div class="error-content">
+            <div class="error-icon">⚠️</div>
+            <h2>Projeto não encontrado</h2>
+            <p>O projeto solicitado não existe ou foi removido.</p>
+            <button onclick="window.location.href='index.html'" class="btn-primary">
+                Voltar ao Início
+            </button>
+        </div>
+    </div>
+
+    <!-- Help Modal -->
+    <div id="helpModal" class="modal hidden">
+        <div class="modal-backdrop" onclick="closeHelpModal()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Como usar o tour virtual</h2>
+                <button class="modal-close" onclick="closeHelpModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <ul>
+                    <li><strong>Mouse:</strong> Arraste para rotacionar a visualização</li>
+                    <li><strong>Scroll:</strong> Use a roda do mouse para zoom in/out</li>
+                    <li><strong>Pontos:</strong> Clique nos pontos para navegar entre cenas</li>
+                    <li><strong>Tela Cheia:</strong> Use o botão ⛶ para visualização em tela cheia</li>
+                    <li><strong>ESC:</strong> Pressione ESC para sair da tela cheia</li>
+                    <li><strong>Mobile:</strong> Use gestos de toque para navegar</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-primary" onclick="closeHelpModal()">Entendi</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.pannellum.org/2.5/pannellum.js"></script>
+    <script src="tour-script.js"></script>
+</body>
+</html>
